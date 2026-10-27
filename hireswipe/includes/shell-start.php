@@ -58,8 +58,18 @@ include __DIR__ . '/head.php';
                 </nav>
             </div>
             <?php include __DIR__ . '/brand.php'; ?>
+            <nav class="nav-inline" aria-label="Primary">
+                <?php foreach ($navItems as $key => $item): ?>
+                    <a class="nav-link<?= $key === $active ? ' is-active' : '' ?>" href="<?= e($item[1]) ?>"<?= $key === $active ? ' aria-current="page"' : '' ?>>
+                        <?= e($item[0]) ?>
+                        <?php if ($key === 'interview' && $interviewCount > 0): ?><span class="badge"><?= (int) $interviewCount ?></span><?php endif; ?>
+                    </a>
+                <?php endforeach; ?>
+            </nav>
         </div>
 
+        <div class="appbar-right">
+        <a class="nav-logout" href="logout.php">Log out</a>
         <?php if ($showNotifications): ?>
             <div class="dropdown dropdown-right">
                 <button type="button" class="icon-btn" id="notif-btn" aria-expanded="false" aria-controls="notif-panel" aria-label="Notifications, <?= (int) $notifCount ?> new" data-dropdown>
@@ -81,6 +91,7 @@ include __DIR__ . '/head.php';
                 </section>
             </div>
         <?php endif; ?>
+        </div>
     </div>
 </header>
 <main class="content">
