@@ -22,5 +22,6 @@ profile.php             details, edit details and notification settings (employe
 logout.php
 includes/               helpers.php, data.php (dummy records), cards.php, head.php, foot.php, brand.php
 assets/css/style.css
+assets/js/swipe.js      card deck (drag, buttons, arrow keys)
 assets/js/app.js        image preview
 ```

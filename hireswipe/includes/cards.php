@@ -332,3 +332,122 @@ function render_job_interview_card($j, $iv, $status, $tab, $error = '', $old = [
         <?php endif; ?>
     </article>
 <?php }
+
+/* ---------- swipe deck cards (Home screens) ---------- */
+
+/** One tile in the facts grid of a deck card. */
+function render_tile($label, $value)
+{ ?>
+    <div class="sc-tile"><span><?= e($label) ?></span><b><?= e($value) ?></b></div>
+<?php }
+
+/** Employee Home: a company request as a full swipe card. $i is its place in the stack. */
+function render_request_swipe($j, $i)
+{ ?>
+    <article class="swipe-card" data-id="<?= e($j['id']) ?>" style="--i:<?= (int) min($i, 3) ?>;--hue:<?= (int) (crc32($j['id']) % 360) ?>">
+        <span class="stamp stamp-no" aria-hidden="true">Pass</span>
+        <span class="stamp stamp-yes" aria-hidden="true">Confirm</span>
+        <div class="sc-hero">
+            <img class="logo sc-photo" src="<?= e($j['logo']) ?>" alt="" width="84" height="84" draggable="false">
+            <p class="sc-eyebrow">Request from <?= e($j['sender']) ?></p>
+            <h2><?= e($j['title']) ?></h2>
+            <p class="sc-sub"><?= e($j['company']) ?></p>
+        </div>
+        <div class="sc-body">
+            <p class="chips">
+                <span class="chip"><?= e($j['job_type']) ?></span>
+                <span class="chip"><?= e($j['workplace']) ?></span>
+                <span class="chip"><?= e($j['employment']) ?></span>
+            </p>
+            <div class="sc-tiles">
+                <?php render_tile('Industry', $j['industry']); ?>
+                <?php render_tile('Experience', $j['experience']); ?>
+                <?php render_tile('Expected salary', lpa_value($j['salary'])); ?>
+                <?php render_tile('Location', $j['location']); ?>
+            </div>
+            <p class="sc-about"><?= e($j['about']) ?></p>
+        </div>
+    </article>
+<?php }
+
+/** Employer Home: an employee as a full swipe card. */
+function render_candidate_swipe($e, $i)
+{ ?>
+    <article class="swipe-card" data-id="<?= e($e['id']) ?>" style="--i:<?= (int) min($i, 3) ?>;--hue:<?= (int) (crc32($e['id']) % 360) ?>">
+        <span class="stamp stamp-no" aria-hidden="true">Pass</span>
+        <span class="stamp stamp-yes" aria-hidden="true">Accept</span>
+        <div class="sc-hero">
+            <img class="avatar sc-photo" src="<?= e($e['image']) ?>" alt="" width="84" height="84" draggable="false">
+            <p class="sc-eyebrow"><?= e($e['job_type']) ?> &middot; <?= e($e['location']) ?></p>
+            <h2><?= e($e['name']) ?></h2>
+            <p class="sc-sub"><?= e($e['industry']) ?></p>
+        </div>
+        <div class="sc-body">
+            <div class="sc-tiles">
+                <?php render_tile('Experience', years($e['experience'])); ?>
+                <?php render_tile('Expected salary', lpa($e['salary'])); ?>
+                <?php render_tile('Gender', $e['gender']); ?>
+                <?php render_tile('Date of birth', pretty_date($e['dob'])); ?>
+            </div>
+        </div>
+    </article>
+<?php }
+
+/** Pass and confirm buttons plus the hidden form the swipe script submits. */
+function render_deck_controls($yes)
+{ ?>
+    <div class="deck-actions">
+        <button type="button" class="round-btn round-no" data-decide="reject" aria-label="Pass">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+            <span>Pass</span>
+        </button>
+        <button type="button" class="round-btn round-yes" data-decide="accept" aria-label="<?= e($yes) ?>">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+            <span><?= e($yes) ?></span>
+        </button>
+    </div>
+    <p class="deck-hint">Drag the card, or use the <kbd>&larr;</kbd> <kbd>&rarr;</kbd> keys.</p>
+    <form method="post" action="" id="decision-form" hidden>
+        <input type="hidden" name="candidate" id="decision-candidate" value="">
+        <input type="hidden" name="decision" id="decision-value" value="">
+    </form>
+<?php }
+
+/** Collapsible search and filter panel above the deck. */
+function render_filter_sheet($searchLabel, $q, $loc, $ind, $locations, $filtered, $homeUrl)
+{ ?>
+    <details class="filter-sheet"<?= $filtered ? ' open' : '' ?>>
+        <summary>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg>
+            Filters<?php if ($filtered): ?> <span class="chip chip-on">on</span><?php endif; ?>
+        </summary>
+        <form method="get" class="filters">
+            <div class="field">
+                <label for="q">Search</label>
+                <input type="text" id="q" name="q" placeholder="<?= e($searchLabel) ?>" value="<?= e($q) ?>">
+            </div>
+            <div class="field">
+                <label for="location">Location</label>
+                <select id="location" name="location">
+                    <option value="">All locations</option>
+                    <?php foreach ($locations as $l): ?>
+                        <option value="<?= e($l) ?>"<?= $loc === $l ? ' selected' : '' ?>><?= e($l) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="field">
+                <label for="industry">Industry</label>
+                <select id="industry" name="industry">
+                    <option value="">All industries</option>
+                    <?php foreach (INDUSTRIES as $i): ?>
+                        <option value="<?= e($i) ?>"<?= $ind === $i ? ' selected' : '' ?>><?= e($i) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">Apply</button>
+                <?php if ($filtered): ?><a class="btn btn-ghost" href="<?= e($homeUrl) ?>">Clear</a><?php endif; ?>
+            </div>
+        </form>
+    </details>
+<?php }

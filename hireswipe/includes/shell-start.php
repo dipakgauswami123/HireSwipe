@@ -37,61 +37,67 @@ if ($showNotifications) {
     }));
     $notifCount = count($notifications);
 }
-include __DIR__ . '/head.php';
-?>
-<header class="appbar">
-    <div class="appbar-inner">
-        <div class="appbar-left">
-            <div class="dropdown">
-                <button type="button" class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="menu-panel" data-dropdown>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                    <span>Menu</span>
-                </button>
-                <nav class="dropdown-panel menu-panel" id="menu-panel" aria-label="Main" hidden>
-                    <?php foreach ($navItems as $key => $item): ?>
-                        <a class="menu-link<?= $key === $active ? ' is-active' : '' ?>" href="<?= e($item[1]) ?>"<?= $key === $active ? ' aria-current="page"' : '' ?>>
-                            <?= e($item[0]) ?>
-                            <?php if ($key === 'interview' && $interviewCount > 0): ?><span class="badge"><?= (int) $interviewCount ?></span><?php endif; ?>
-                        </a>
-                    <?php endforeach; ?>
-                    <a class="menu-link menu-logout" href="logout.php">Log out</a>
-                </nav>
-            </div>
-            <?php include __DIR__ . '/brand.php'; ?>
-            <nav class="nav-inline" aria-label="Primary">
-                <?php foreach ($navItems as $key => $item): ?>
-                    <a class="nav-link<?= $key === $active ? ' is-active' : '' ?>" href="<?= e($item[1]) ?>"<?= $key === $active ? ' aria-current="page"' : '' ?>>
-                        <?= e($item[0]) ?>
-                        <?php if ($key === 'interview' && $interviewCount > 0): ?><span class="badge"><?= (int) $interviewCount ?></span><?php endif; ?>
-                    </a>
-                <?php endforeach; ?>
-            </nav>
-        </div>
+$icons = [
+    'home'       => '<path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1v-7.5Z"/>',
+    'job-search' => '<circle cx="11" cy="11" r="6"/><path d="m20 20-4.2-4.2"/>',
+    'applied'    => '<path d="M6 4h9l3 3v13H6V4Z"/><path d="m9 13 2 2 4-4"/>',
+    'post-job'   => '<circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/>',
+    'interview'  => '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+    'profile'    => '<circle cx="12" cy="9" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>',
+];
+$userName = $role === 'employee' ? ($_SESSION['user']['name'] ?? 'You') : ($_SESSION['user']['details'] ?? 'Company');
 
-        <div class="appbar-right">
-        <a class="nav-logout" href="logout.php">Log out</a>
-        <?php if ($showNotifications): ?>
-            <div class="dropdown dropdown-right">
-                <button type="button" class="icon-btn" id="notif-btn" aria-expanded="false" aria-controls="notif-panel" aria-label="Notifications, <?= (int) $notifCount ?> new" data-dropdown>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 17h12l-1.5-2V10a4.5 4.5 0 0 0-9 0v5L6 17Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 20a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                    <?php if ($notifCount > 0): ?><span class="badge-dot" aria-hidden="true"><?= (int) $notifCount ?></span><?php endif; ?>
-                </button>
-                <section class="dropdown-panel notif-panel" id="notif-panel" aria-label="Notifications" hidden>
-                    <h2 class="notif-title">Notifications</h2>
-                    <?php if ($notifications): ?>
-                        <ul class="notif-list">
-                            <?php foreach ($notifications as $n): ?>
-                                <li><p><?= e($n['text']) ?></p><span><?= e($n['time']) ?></span></li>
-                            <?php endforeach; ?>
-                        </ul>
-                    <?php else: ?>
-                        <p class="notif-empty">No notifications for the types you chose.</p>
-                    <?php endif; ?>
-                    <a class="notif-edit" href="profile.php?view=notifications">Edit notification settings</a>
-                </section>
+include __DIR__ . '/head.php';
+$renderNav = function ($class) use ($navItems, $active, $icons, $interviewCount) {
+    foreach ($navItems as $key => $item): ?>
+        <a class="<?= $class ?><?= $key === $active ? ' is-active' : '' ?>" href="<?= e($item[1]) ?>"<?= $key === $active ? ' aria-current="page"' : '' ?>>
+            <svg class="nav-ico" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><?= $icons[$key] ?></svg>
+            <span class="nav-text"><?= e($item[0]) ?></span>
+            <?php if ($key === 'interview' && $interviewCount > 0): ?><span class="badge"><?= (int) $interviewCount ?></span><?php endif; ?>
+        </a>
+    <?php endforeach;
+};
+?>
+<div class="shell">
+    <aside class="sidebar">
+        <?php include __DIR__ . '/brand.php'; ?>
+        <nav class="side-nav" aria-label="Main">
+            <?php $renderNav('side-link'); ?>
+        </nav>
+        <a class="side-logout" href="logout.php">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5H6a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h4M15 8l4 4-4 4M19 12H9"/></svg>
+            Log out
+        </a>
+    </aside>
+
+    <div class="shell-main">
+        <header class="topline">
+            <div class="topline-brand"><?php include __DIR__ . '/brand.php'; ?></div>
+            <div class="topline-right">
+                <?php if ($showNotifications): ?>
+                    <div class="dropdown dropdown-right">
+                        <button type="button" class="icon-btn" id="notif-btn" aria-expanded="false" aria-controls="notif-panel" aria-label="Notifications, <?= (int) $notifCount ?> new" data-dropdown>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 17h12l-1.5-2V10a4.5 4.5 0 0 0-9 0v5L6 17Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 20a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                            <?php if ($notifCount > 0): ?><span class="badge-dot" aria-hidden="true"><?= (int) $notifCount ?></span><?php endif; ?>
+                        </button>
+                        <section class="dropdown-panel notif-panel" id="notif-panel" aria-label="Notifications" hidden>
+                            <h2 class="notif-title">Notifications</h2>
+                            <?php if ($notifications): ?>
+                                <ul class="notif-list">
+                                    <?php foreach ($notifications as $n): ?>
+                                        <li><p><?= e($n['text']) ?></p><span><?= e($n['time']) ?></span></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php else: ?>
+                                <p class="notif-empty">No notifications for the types you chose.</p>
+                            <?php endif; ?>
+                            <a class="notif-edit" href="profile.php?view=notifications">Edit notification settings</a>
+                        </section>
+                    </div>
+                <?php endif; ?>
+                <a class="me-chip" href="profile.php" aria-label="Your profile">
+                    <span class="me-dot" aria-hidden="true"><?= e(strtoupper(substr((string) $userName, 0, 1))) ?></span>
+                </a>
             </div>
-        <?php endif; ?>
-        </div>
-    </div>
-</header>
-<main class="content">
+        </header>
+        <main class="content">

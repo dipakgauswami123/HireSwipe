@@ -70,75 +70,23 @@ include __DIR__ . '/includes/shell-start.php';
 ?>
 <?php if ($notice): ?><p class="banner banner-ok" role="status"><?= e($notice) ?></p><?php endif; ?>
 
-<h1>Employees</h1>
-
-<form method="get" class="filters">
-    <div class="field">
-        <label for="q">Search</label>
-        <input type="text" id="q" name="q" placeholder="Search by name" value="<?= e($q) ?>">
-    </div>
-    <div class="field">
-        <label for="location">Location</label>
-        <select id="location" name="location">
-            <option value="">All locations</option>
-            <?php foreach ($locations as $l): ?>
-                <option value="<?= e($l) ?>"<?= $loc === $l ? ' selected' : '' ?>><?= e($l) ?></option>
-            <?php endforeach; ?>
-        </select>
-    </div>
-    <div class="field">
-        <label for="industry">Industry</label>
-        <select id="industry" name="industry">
-            <option value="">All industries</option>
-            <?php foreach (INDUSTRIES as $i): ?>
-                <option value="<?= e($i) ?>"<?= $ind === $i ? ' selected' : '' ?>><?= e($i) ?></option>
-            <?php endforeach; ?>
-        </select>
-    </div>
-    <div class="filter-actions">
-        <button type="submit" class="btn btn-primary">Search</button>
-        <?php if ($filtered): ?><a class="btn btn-ghost" href="employer-home.php">Clear</a><?php endif; ?>
-    </div>
-</form>
-
-<p class="lead results"><?= count($shown) ?> of <?= count($pool) ?> employees</p>
-
-<?php if ($shown): ?>
-    <div class="grid">
-        <?php foreach ($shown as $emp) { render_candidate_card($emp); } ?>
-    </div>
-<?php else: ?>
-    <p class="empty">
-        <?= $pool ? 'No employees match these filters.' : 'You have gone through every employee.' ?>
-        <?php if ($filtered): ?><a href="employer-home.php">Clear filters</a><?php endif; ?>
-    </p>
-<?php endif; ?>
-
-<?php foreach ($shown as $emp): ?>
-    <template id="tpl-<?= e($emp['id']) ?>"><?php render_detail($emp); ?></template>
-<?php endforeach; ?>
-
-<dialog id="detail" class="detail-dialog" aria-label="Employee details">
-    <div class="dialog-wrap">
-    <div class="dialog-inner">
-        <div class="dialog-bar">
-            <p class="hint">Swipe left to reject, right to accept.</p>
-            <button type="button" class="link link-btn" data-close>Close</button>
+<section class="deck-view">
+    <div class="deck-head">
+        <div>
+            <h1>Discover</h1>
+            <p class="lead"><span id="deck-count"><?= count($shown) ?></span> people left<?= $filtered ? ' with these filters' : '' ?></p>
         </div>
-        <div class="swipe-stage">
-            <div class="swipe-card" id="swipe-card">
-                <span class="stamp stamp-no" aria-hidden="true">Reject</span>
-                <span class="stamp stamp-yes" aria-hidden="true">Accept</span>
-                <div id="detail-body"></div>
-            </div>
+        <?php render_filter_sheet('Search by name', $q, $loc, $ind, $locations, $filtered, 'employer-home.php'); ?>
+    </div>
+
+    <div class="deck-stage" id="deck" data-yes="Accept">
+        <?php foreach ($shown as $i => $emp) { render_candidate_swipe($emp, $i); } ?>
+        <div class="deck-empty" id="deck-empty"<?= $shown ? ' hidden' : '' ?>>
+            <p class="deck-empty-title"><?= $pool ? 'No employees match these filters.' : 'You have gone through every employee.' ?></p>
+            <?php if ($filtered): ?><a class="btn btn-primary" href="employer-home.php">Clear filters</a><?php endif; ?>
         </div>
-        <form method="post" action="" id="decision-form" class="swipe-actions">
-            <input type="hidden" name="candidate" id="decision-candidate" value="">
-            <input type="hidden" name="decision" id="decision-value" value="">
-            <button type="button" class="btn btn-reject" data-decide="reject">Reject</button>
-            <button type="button" class="btn btn-accept" data-decide="accept">Accept</button>
-        </form>
     </div>
-    </div>
-</dialog>
+
+    <?php render_deck_controls('Accept'); ?>
+</section>
 <?php include __DIR__ . '/includes/shell-end.php'; ?>
